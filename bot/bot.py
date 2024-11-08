@@ -5,7 +5,6 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, ReplyKeyboardRemove
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.default import DefaultBotProperties
-from aiogram.filters import CommandStart, Command
 from aiogram.utils.keyboard import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.enums import ParseMode
 from aiogram.fsm.state import State, StatesGroup
@@ -15,7 +14,7 @@ from commands import (
     FILMS_COMMAND,
     START_COMMAND,
     FILM_CREATE_COMMAND,
-    BOT_COMMANDS
+    BOT_COMMANDS,
 )
 
 TOKEN = '8084647023:AAEAe_KuOcV1TVuxYeM_qj6k4LUUimkjK7w'
@@ -45,6 +44,19 @@ async def films_search(message: Message) -> None:
         film_choice.inline_keyboard.append([button]) 
     await message.answer(text='Choose film', reply_markup=film_choice)
 
+# @dp.message(FILM_DELETE_COMMAND)
+# async def film_delete(message: Message ) -> None:
+    
+    
+        
+            
+    
+# @dp.callback_query()
+# async def film_delete_handler(callback: CallbackQuery):
+#     film_name = callback.data
+#     del films[film_name]
+    
+    
 class StateForm(StatesGroup):
     name = State()
     description = State()
@@ -73,18 +85,18 @@ async def film_name(message: Message, state: FSMContext) -> None:
 @dp.message(StateForm.description)
 async def film_description(message: Message, state: FSMContext) -> None:
     await state.update_data(description=message.text)
-    await state.set_state(StateForm.rating)
+    await state.set_state(StateForm.year)
     await message.answer("Введіть рік випуску фільму.")
 @dp.message(StateForm.year)
 async def film_name(message: Message, state: FSMContext) -> None:
     await state.update_data(year=message.text)
-    await state.set_state(StateForm.year)
+    await state.set_state(StateForm.director)
     await message.answer("Введіть режисера фільму.")
 
 @dp.message(StateForm.director)
 async def film_name(message: Message, state: FSMContext) -> None:
     await state.update_data(director=message.text)
-    await state.set_state(StateForm.year)
+    await state.set_state(StateForm.rating)
     await message.answer("Введіть рейтинг фільму від 1 до 10.")
 @dp.message(StateForm.rating)
 async def film_rating(message: Message, state: FSMContext) -> None:
@@ -103,11 +115,11 @@ async def film_genre(message: Message, state: FSMContext) -> None:
 @dp.message(StateForm.actors)
 async def film_actors(message: Message, state: FSMContext) -> None:
     await state.update_data(actors=[x.strip() for x in message.text.split(", ")])
-    await state.set_state(StateForm.actors)
+    await state.set_state(StateForm.photo)
     await message.answer("Введіть посилання на постер фільму.")
 
 @dp.message(StateForm.photo)
-async def film_poster(message: Message, state: FSMContext) -> None:
+async def film_photo(message: Message, state: FSMContext) -> None:
     user_data = await state.update_data(photo=message.text)
     
     film_name = user_data['name']
@@ -131,10 +143,10 @@ async def film_info_handler(callback: CallbackQuery):
     film_photo = film_data.get('photo', 'No photo')
     film_description = film_data.get('description', 'No description')
     film_year = film_data.get('year', 'Not known')
-    film_genre = ', '.join(film_data.get('genre', []))
+    film_genre = ''.join(film_data.get('genre', []))
     film_rating = film_data.get('rating', 'Not known')
     film_director = film_data.get('director', 'Not known')
-    film_actors = film_data.get('actors', 'Not known')
+    film_actors = ', '.join(film_data.get('actors',[]))
     
     film_message = (
         f"📽️ Назва: <b>{film_name}</b>\n"
